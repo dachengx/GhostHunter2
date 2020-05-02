@@ -22,9 +22,8 @@ def main(fopt, fipt, method):
         dt = np.zeros(e_num, dtype=opdt)
         dt['EventID'] = e_ans
         for eid, j, i0, i in zip(e_ans, range(e_num), np.nditer(i_ans), it.chain(np.nditer(i_ans[1:]), [len(petru)])):
-            pi = petru[i0:i]['PETime']
-            if np.std(pi) > 27:
-                dt[j]['Alpha'] = 1
+            pet = petru[i0:i]['PETime']
+            dt[j]['Alpha'] = min(max((np.std(pet)-24)/8, 0), 1)
             print('\rAnsw Generating:|{}>{}|{:6.2f}%'.format(((20*j)//e_num)*'-', (19-(20*j)//e_num)*' ', 100 * ((j+1) / e_num)), end='' if j != e_num-1 else '\n')
     with h5py.File(fopt, 'w') as opt:
         opt.create_dataset('Answer', data=dt, compression='gzip')
