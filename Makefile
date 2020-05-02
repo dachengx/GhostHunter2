@@ -2,7 +2,11 @@ SHELL:=bash
 seq:=$(shell seq 0 0)
 datfold:=/srv/abpid/dataset
 
-all:
+all: $(method)/sub.h5
+
+$(method)/sub.h5: $(datfold)/pre-problem.h5
+	@mkdir -p $(dir $@)
+	python3 thres.py $^ -o $@
 
 $(datfold)/pre-0.h5:
 	@mkdir -p $(dir $@)
