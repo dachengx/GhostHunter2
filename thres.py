@@ -20,10 +20,17 @@ class AnswerData(tables.IsDescription) :
 
 def StdMethod(PETruth, AnswerRow) :
     e_ans, i_ans = np.unique(PETruth['EventID'], return_index=True)
-    i_ans = np.append(i_ans, len(PETruth) - 1)
+    i_ans = np.append(i_ans, len(PETruth))
     for i in tqdm(range(len(e_ans))) :
         this_event_petruth = PETruth[i_ans[i]:i_ans[i + 1]]
-        this_event_answer = min(max((np.std(this_event_petruth['PETime']) - 24) / 8, 0), 1)
+        channelid, channel_index = np.unique(this_event_petruth['ChannelID'], return_index=True)
+        channel_index = np.append(channel_index, len(this_event_petruth))
+        this_event_variation = 0
+        nFiredPMTs = len(channelid)
+        for j in range(nFiredPMTs) :
+            this_channel_petruth = this_event_petruth[channel_index[j]:channel_index[j + 1]]
+            this_event_variation += np.var(this_channel_petruth["PETime"])
+        this_event_answer = min(max((np.sqrt(this_event_variation / nFiredPMTs) - 24) / 8, 0), 1)
         AnswerRow['EventID'] = e_ans[i]
         AnswerRow['Alpha'] = this_event_answer
         AnswerRow.append()
