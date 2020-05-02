@@ -15,7 +15,7 @@ def ReadPETruth(filename) :
 
 @numba.jit
 def MakeTimeProfile(WindowSize, nEvents, nChannels, PETruth) :
-    TimeProfile = np.empty((nEvents, nChannels, WindowSize), dtype=np.uint8)
+    TimeProfile = np.zeros((nEvents, nChannels, WindowSize), dtype=np.uint8)
     for i in range(len(PETruth)) :
         TimeProfile[PETruth["EventID"][i] - 1][PETruth["ChannelID"][i]][PETruth["PETime"][i]] += 1
     return TimeProfile
