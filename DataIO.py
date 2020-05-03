@@ -13,6 +13,22 @@ def ReadPETruth(filename) :
     return {"Data": PETruth, "DataFrame": PETruth_DataFrame}
 
 
+def ReadParticleTruth(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    ParticleTruth = iptfile.root.ParticleTruth[:]
+    keys = iptfile.root.ParticleTruth.colnames
+    ParticleTruth_DataFrame = pd.DataFrame({key: ParticleTruth[key] for key in keys})
+    iptfile.close()
+    return {"Data": ParticleTruth, "DataFrame": ParticleTruth_DataFrame}
+
+
+def ReadParticleType(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    ParticleType = iptfile.root.ParticleTruth.col("Alpha")
+    iptfile.close()
+    return ParticleType
+
+
 @numba.jit
 def MakeTimeProfile(WindowSize, nEvents, nChannels, PETruth) :
     TimeProfile = np.zeros((nEvents, nChannels, WindowSize), dtype=np.uint8)

@@ -2,6 +2,7 @@ SHELL:=bash
 seq:=$(shell seq 0 9)
 datfold:=/srv/abpid/dataset
 pre_train:=$(seq:%=$(datfold)/pre-%.h5)
+method:=Threshold
 
 all: $(method)/sub.h5
 
