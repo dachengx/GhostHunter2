@@ -10,10 +10,10 @@ class Net_1(nn.Module):
         super(Net_1, self).__init__()
 
         # input is 1000*30
-        self.conv1 = nn.Conv2d(1, 10, (30, 10), stride=(10, 1))
-        self.conv2 = nn.Conv2d(10, 5, (14, 10), stride=(3, 1))
-        self.conv3 = nn.Conv2d(5, 1, (11, 5), stride=(2, 1))
-        self.conv4 = nn.Conv2d(1, 1, (9, 8))
+        self.conv1 = nn.Conv2d(1, 15, (15, 10), stride=(5, 1))
+        self.conv2 = nn.Conv2d(15, 10, (10, 9), stride=(2, 1))
+        self.conv3 = nn.Conv2d(10, 5, (9, 8))
+        self.conv4 = nn.Conv2d(1, 1, (6, 6))
 
     def forward(self, x):
         m = nn.Sigmoid()

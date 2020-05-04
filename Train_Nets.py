@@ -2,10 +2,10 @@
 
 import argparse
 psr = argparse.ArgumentParser()
-psr.add_argument('ipt', help='input file prefix')
+psr.add_argument('ipt', help='input file prefix', type=str)
 psr.add_argument('-o', '--outputdir', dest='opt', help='output_dir')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
-psr.add_argument('-P', '--pretrained', dest='pretained_model', type=str, default="")
+psr.add_argument('-P', '--pretrained', dest='pretained_model', nargs='?', type=str, default='')
 args = psr.parse_args()
 SavePath = args.opt
 filename = args.ipt
@@ -23,22 +23,23 @@ from CNN_Module import Net_1
 import os
 import time
 
+WindowSize = [200, 400]
+
 if not os.path.exists(SavePath):
     os.makedirs(SavePath)
-localtime = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-training_record_name = SavePath + "training_record_" + localtime
-testing_record_name = SavePath + "testing_record_" + localtime
-training_record = open((training_record_name + ".txt"), "a+")
-testing_record = open((testing_record_name + ".txt"), "a+")
+localtime = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
+training_record_name = SavePath + 'training_record_' + localtime
+testing_record_name = SavePath + 'testing_record_' + localtime
+training_record = open((training_record_name + '.txt'), 'a+')
+testing_record = open((testing_record_name + '.txt'), 'a+')
 
 device = torch.device(1)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
-PETruth = DataIO.ReadPETruth(filename)["DataFrame"]
+PETruth = DataIO.ReadPETruth(filename)['DataFrame']
 ParticleType = DataIO.ReadParticleType(filename)
-WindowSize = 1000; nEvents = len(PETruth['EventID'].unique()); nChannels = len(PETruth['ChannelID'].unique())
-TimeProfile = DataIO.MakeTimeProfile(WindowSize, nEvents, nChannels, PETruth)
+TimeProfile = DataIO.MakeTimeProfile(PETruth, WindowSize)
 TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
 train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).cuda(device=device).float(), 
                                 torch.from_numpy(ParticleType_train).cuda(device=device).float())
@@ -90,11 +91,11 @@ for epoch in range(25):  # loop over the dataset multiple times
     # checking results in testing_s
     if epoch % 4 == 0:
         test_performance = testing(test_loader)
-        print("epoch ", str(epoch), " test:", test_performance)
-        testing_record.write("%4f " % (test_performance))
+        print('epoch ', str(epoch), ' test:', test_performance)
+        testing_record.write('%4f ' % (test_performance))
         testing_result.append(test_performance)
         # saving network
-        save_name = SavePath + "_epoch" + str(epoch) + "_loss" + "%.4f" % (test_performance)
+        save_name = SavePath + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
         torch.save(net, save_name)
 
 print(training_result)
