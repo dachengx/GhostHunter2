@@ -31,7 +31,8 @@ def ReadParticleType(filename) :
 
 @numba.jit
 def MakeTimeProfile(WindowSize, nEvents, nChannels, PETruth) :
-    TimeProfile = np.zeros((nEvents, nChannels, WindowSize), dtype=np.uint8)
+    vPETruth = PETruth.query("PETime >=0 and PETime < @WindowSize")
+    TimeProfile = np.zeros((nEvents, WindowSize, nChannels), dtype=np.uint8)
     for i in range(len(PETruth)) :
-        TimeProfile[PETruth["EventID"][i] - 1][PETruth["ChannelID"][i]][PETruth["PETime"][i]] += 1
+        TimeProfile[vPETruth["EventID"][i] - 1][vPETruth["PETime"][i][vPETruth["ChannelID"][i]]] += 1
     return TimeProfile
