@@ -13,11 +13,11 @@ import re
 
 
 fileSet = os.listdir(inputdir)
-matchrule = re.compile(r"_epoch(\d+)_loss(\d+(\.\d*)?|\.\d+)([eE]([-+]?\d+))?")
+matchrule = re.compile(r'_epoch(\d+)_loss(\d+(\.\d*)?|\.\d+)([eE]([-+]?\d+))?')
 NetLoss_reciprocal = []
 for filename in fileSet :
-    if "_epoch" in filename : NetLoss_reciprocal.append(1 / float(matchrule.match(filename)[2]))
+    if '_epoch' in filename : NetLoss_reciprocal.append(1 / float(matchrule.match(filename)[2]))
     else : NetLoss_reciprocal.append(0)
 net_name = fileSet[NetLoss_reciprocal.index(max(NetLoss_reciprocal))]
 
-os.system("ln -s " + inputdir + "/" + net_name + " " + output)
+os.system('ln -s ' + inputdir + '/' + net_name + ' ' + output)

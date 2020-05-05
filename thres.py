@@ -21,15 +21,15 @@ def CalulateStd(PETruth) :
     STD = np.empty(len(e_ans), dtype=np.float32)
     for i in tqdm(range(len(e_ans))) :
         this_event_petruth = PETruth[i_ans[i]:i_ans[i + 1]]
-        this_event_answer = np.std(this_event_petruth["PETime"])
+        this_event_answer = np.std(this_event_petruth['PETime'])
         STD[i] = this_event_answer
-    return {"STD": STD, "EventID": e_ans}
+    return {'STD': STD, 'EventID': e_ans}
 
 
 def ProcessTrainFile(filename) :
-    PETruth = ReadPETruth(filename)["Data"]
+    PETruth = ReadPETruth(filename)['Data']
     ParticleType = ReadParticleType(filename)
-    return {"STD": CalulateStd(PETruth)["STD"], "ParticleType": ParticleType}
+    return {'STD': CalulateStd(PETruth)['STD'], 'ParticleType': ParticleType}
 
 
 def classifier(STD, para1, para2) :
@@ -41,11 +41,11 @@ def classifier(STD, para1, para2) :
 
 def train() :
     from IPython import embed
-    filenames = ["dataset/pre-{}.h5".format(i) for i in range(10)]
+    filenames = ['dataset/pre-{}.h5'.format(i) for i in range(10)]
     with Pool(len(filenames)) as pool :
         Result = pool.map(ProcessTrainFile, filenames)
-    STD = np.concatenate([result["STD"] for result in Result])
-    ParticleType = np.concatenate([result["ParticleType"] for result in Result])
+    STD = np.concatenate([result['STD'] for result in Result])
+    ParticleType = np.concatenate([result['ParticleType'] for result in Result])
 
     para1_series = np.linspace(21, 21.04, 11)
     para2_series = np.linspace(9.1, 9.14, 11)
@@ -60,18 +60,18 @@ def train() :
     with Pool(min(len(para1_series), 250)) as pool :
         Results = pool.starmap(Scan, Paras)
 
-    Results = pd.DataFrame({"para1": para1_series, "para2": para2_series, "loss": Results})
-    Results = Results.sort_values(by="loss", ascending=True)
+    Results = pd.DataFrame({'para1': para1_series, 'para2': para2_series, 'loss': Results})
+    Results = Results.sort_values(by='loss', ascending=True)
     embed()
 
 
 def main(fopt, fipt, method):
-    PETruth = ReadPETruth(fipt)["Data"]
-    AnswerFile = tables.open_file(fopt, mode="w", title="AlphaBeta", filters=tables.Filters(complevel=4))
-    AnswerTable = AnswerFile.create_table("/", "Answer", AnswerData, "Answer")
+    PETruth = ReadPETruth(fipt)['Data']
+    AnswerFile = tables.open_file(fopt, mode='w', title='AlphaBeta', filters=tables.Filters(complevel=4))
+    AnswerTable = AnswerFile.create_table('/', 'Answer', AnswerData, 'Answer')
     STD = CalulateStd(PETruth)
-    Answer = classifier(STD["STD"], 21.013, 9.102)
-    AnswerTable.append(list(zip(STD["EventID"], Answer)))
+    Answer = classifier(STD['STD'], 21.013, 9.102)
+    AnswerTable.append(list(zip(STD['EventID'], Answer)))
     AnswerTable.flush()
     AnswerFile.close()
 
