@@ -23,8 +23,6 @@ from CNN_Module import Net_1
 import os
 import time
 
-WindowSize = [200, 400]
-
 if not os.path.exists(SavePath):
     os.makedirs(SavePath)
 localtime = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
@@ -37,9 +35,6 @@ device = torch.device(1)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
-PETruth = DataIO.ReadPETruth(filename)['DataFrame']
-ParticleType = DataIO.ReadParticleType(filename)
-TimeProfile = DataIO.MakeTimeProfile(PETruth, WindowSize)
 TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
 train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).cuda(device=device).float(), 
                                 torch.from_numpy(ParticleType_train).cuda(device=device).float())
