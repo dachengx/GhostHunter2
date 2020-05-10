@@ -22,7 +22,7 @@ $(NetDir)/.Training_finished : $(datfold)/$(trainprefix)0.h5 $(PreTrained_Model)
 
 $(datfold)/$(trainprefix)%.h5 : $(datfold)/$(prefix)%.h5
 	@mkdir -p $(dir $@)
-	python3 -u Gen_Sets.py $^ -o $@ > $@.log 2>&1
+	python3 -u Gen_Sets.py $^ -o $@
 
 $(method)/sub.h5 : $(datfold)/$(prefix)problem.h5
 	@mkdir -p $(dir $@)

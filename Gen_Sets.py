@@ -6,19 +6,19 @@ import DataIO
 
 WindowSize = [200, 400]
 
-class TimeProfileData(tables.IsDescription) :
-    EventID = tables.Int64Col(pos=0)
-    Time = tables.Atom.from_sctype(np.uint8, shape=(200, 30))
 
 def main(fipt, fopt):
     PETruth = DataIO.ReadPETruth(fipt)['DataFrame']
-    ParticleType = DataIO.ReadParticleType(fipt)
     TimeProfile = DataIO.MakeTimeProfile(PETruth, WindowSize)
-    TrainFile = tables.open_file(fopt, mode='w', title='TimeProfile', filters=tables.Filters(complevel=4))
-    TrainTable = TrainFile.create_table('/', 'TimeProfile', TimeProfileData, 'TimeProfile')
-    TimeTable.append(list(zip(ParticleType, TimeProfile)))
-    TimeTable.flush()
-    TimeFile.close()
+    ParticleType = DataIO.ReadParticleType(fipt)
+
+    TrainFile = tables.open_file(fopt, mode='w', filters=tables.Filters(complevel=4))
+    TimeAtom = tables.Atom.from_dtype(TimeProfile.dtype)
+    TimeArray = TrainFile.create_carray('/', 'TimeProfile', atom=TimeAtom, obj=TimeProfile)
+
+    ParticleAtom = tables.Atom.from_dtype(ParticleType.dtype)
+    ParticleArray = TrainFile.create_carray('/', 'ParticleType', atom=ParticleAtom, obj=ParticleType)
+    TrainFile.close()
     return
 
 
