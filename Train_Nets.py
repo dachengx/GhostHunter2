@@ -5,13 +5,14 @@ psr = argparse.ArgumentParser()
 psr.add_argument('ipt', help='input file prefix', type=str)
 psr.add_argument('-o', '--outputdir', dest='opt', help='output_dir')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
-psr.add_argument('-P', '--pretrained', dest='pretained_model', nargs='?', type=str, default='')
+psr.add_argument('-P', '--pretrained', dest='pretained_model', nargs='?', type=str, const='')
 args = psr.parse_args()
 SavePath = args.opt
 filename = args.ipt
 BATCHSIZE = args.BAT
 Model = args.pretained_model
 
+import numpy as np
 import torch
 import torch.utils.data as Data
 from torch import optim
@@ -35,17 +36,29 @@ device = torch.device(1)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
+TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
 TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
 train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).cuda(device=device).float(), 
-                                torch.from_numpy(ParticleType_train).cuda(device=device).float())
+                                torch.from_numpy(ParticleType_train).cuda(device=device).long())
 train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
 test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).cuda(device=device).float(), 
-                                torch.from_numpy(ParticleType_test).cuda(device=device).float())
+                                torch.from_numpy(ParticleType_test).cuda(device=device).long())
 test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
 trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).cuda(device=device).float(),
-                                torch.from_numpy(ParticleType_test[0:1000]).cuda(device=device).float())
+                                torch.from_numpy(ParticleType_test[0:1000]).cuda(device=device).long())
 trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False)
 
+def testing(test_loader) :
+    batch_count = 0
+    loss_sum = 0
+    for j, data in enumerate(test_loader, 0):
+        inputs, labels = data
+        inputs, labels = Variable(inputs), Variable(labels)
+        outputs = net(inputs)
+        loss = loss_set(outputs, labels)
+        loss_sum += loss
+        batch_count += 1
+    return loss_sum / batch_count
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)

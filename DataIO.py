@@ -31,6 +31,14 @@ def ReadParticleType(filename) :
     return ParticleType
 
 
+def ReadTrainSet(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    ParticleType = iptfile.root.ParticleType[:]
+    TimeProfile = iptfile.root.TimeProfile[:]
+    iptfile.close()
+    return TimeProfile, ParticleType
+
+
 def GetProfile(PETruth, WindowLength, nChannels):
     Time = np.zeros((nChannels, WindowLength), dtype=np.uint8)
     channels_number, channels_indices = np.unique(PETruth['ChannelID'], return_index=True)
