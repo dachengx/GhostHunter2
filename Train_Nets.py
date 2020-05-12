@@ -14,6 +14,7 @@ Model = args.pretained_model
 
 import numpy as np
 import torch
+from torch import nn
 import torch.utils.data as Data
 from torch import optim
 from torch.autograd import Variable
@@ -32,7 +33,7 @@ testing_record_name = SavePath + 'testing_record_' + localtime
 training_record = open((training_record_name + '.txt'), 'a+')
 testing_record = open((testing_record_name + '.txt'), 'a+')
 
-device = torch.device(1)
+device = torch.device(0)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
