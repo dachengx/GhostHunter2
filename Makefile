@@ -31,7 +31,7 @@ $(method)/sub.h5 : $(datfold)/$(prefix)problem.h5
 download : $(seq:%=$(datfold)/$(prefix)%.h5) $(datfold)/$(prefix)problem.h5
 $(datfold)/$(prefix)%.h5 :
 	@mkdir -p $(dir $@)
-	wget http://hep.tsinghua.edu.cn/~orv/dc/$(nodir $@) -O $@
+	wget http://hep.tsinghua.edu.cn/~orv/dc/$(notdir $@) -O $@
 $(datfold)/$(prefix)problem.h5 :
 	@mkdir -p $(dir $@)
 	wget http://hep.tsinghua.edu.cn/~orv/dc/pre-problem.h5 -O $@
