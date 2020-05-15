@@ -74,7 +74,7 @@ checking_period = np.int(0.25 * (len(TimeProfile_train) / BATCHSIZE))
 
 training_result = []
 testing_result = []
-for epoch in range(25):  # loop over the dataset multiple times
+for epoch in range(100):  # loop over the dataset multiple times
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # get the inputs
@@ -100,7 +100,7 @@ for epoch in range(25):  # loop over the dataset multiple times
             running_loss = 0.0
 
     # checking results in testing_s
-    if epoch % 4 == 0:
+    if epoch % 9 == 0:
         test_performance = testing(test_loader)
         print('epoch ', str(epoch), ' test:', test_performance)
         testing_record.write('%4f ' % (test_performance))

@@ -62,6 +62,6 @@ def MakeTimeProfile(PETruth, WindowSize) :
     nChannels = 30
     PETruth['ChannelID'] -= PETruth['ChannelID'].min()
     tqdm.pandas()
-    TimeProfile = vPETruth.groupby('EventID').progress_apply(lambda x:GetProfile(x, WindowSize, nChannels))
+    TimeProfile = PETruth.groupby('EventID').progress_apply(lambda x:GetProfile(x, WindowSize, nChannels))
     TimeProfile = np.array(TimeProfile.values.tolist())
     return TimeProfile
