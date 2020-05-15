@@ -33,20 +33,22 @@ testing_record_name = SavePath + 'testing_record_' + localtime
 training_record = open((training_record_name + '.txt'), 'a+')
 testing_record = open((testing_record_name + '.txt'), 'a+')
 
+torch.cuda.init()
+torch.cuda.empty_cache()
 device = torch.device(0)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
 TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
 TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
-train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).cuda(device=device).float(), 
-                                torch.from_numpy(ParticleType_train).cuda(device=device).long())
+train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).float().cuda(device=device), 
+                                torch.from_numpy(ParticleType_train).long().cuda(device=device))
 train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
-test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).cuda(device=device).float(), 
-                                torch.from_numpy(ParticleType_test).cuda(device=device).long())
+test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).float().cuda(device=device),
+                                torch.from_numpy(ParticleType_test).long().cuda(device=device))
 test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
-trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).cuda(device=device).float(),
-                                torch.from_numpy(ParticleType_test[0:1000]).cuda(device=device).long())
+trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).float().cuda(device=device),
+                                torch.from_numpy(ParticleType_test[0:1000]).long().cuda(device=device))
 trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False)
 
 def testing(test_loader) :
@@ -65,8 +67,8 @@ if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
     lr = 5e-4
 else :
-    net = Net_1().to(device)
-    lr = 1e-2
+    net = Net_1().cuda(device)
+    lr = 1e-4
 optimizer = optim.Adam(net.parameters(), lr=lr)
 checking_period = np.int(0.25 * (len(TimeProfile_train) / BATCHSIZE))
 
