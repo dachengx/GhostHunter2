@@ -38,6 +38,12 @@ def ReadTrainSet(filename) :
     iptfile.close()
     return TimeProfile, ParticleType
 
+def ReadProblemSet(filename):
+    iptfile = tables.open_file(filename, 'r')
+    EventID = iptfile.root.EventID[:]
+    TimeProfile = iptfile.root.TimeProfile[:]
+    iptfile.close()
+    return EventID, TimeProfile
 
 def GetProfile(PETruth, WindowSize, nChannels):
     Time = np.zeros((nChannels, WindowSize[1] - WindowSize[0]), dtype=np.uint8)
