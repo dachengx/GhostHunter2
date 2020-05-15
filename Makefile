@@ -19,7 +19,7 @@ $(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(NetDir)/ab.torch_net
 	python3 -u Inference.py $< -M $(word 2,$^) -o $@
 
 $(NetDir)/ab.torch_net : $(NetDir)/.Training_finished
-	python3 -u Choose_Nets.py $(dir $<) $@
+	python3 -u Choose_Nets.py $(dir $<) -o $@
 
 $(NetDir)/.Training_finished : $(datfold)/$(trainprefix)0.h5 $(PreTrained_Model)
 	@mkdir -p $(dir $@)

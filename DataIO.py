@@ -6,6 +6,12 @@ import pandas as pd
 from tqdm import tqdm
 import numba
 
+
+class AnswerData(tables.IsDescription) :
+    EventID = tables.Int64Col(pos=0)
+    Alpha = tables.Float32Col(pos=1)
+
+
 def ReadPETruth(filename) :
     iptfile = tables.open_file(filename, 'r')
     PETruth = iptfile.root.PETruth[:]

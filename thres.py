@@ -4,15 +4,11 @@ import numpy as np
 import tables
 from tqdm import tqdm
 import pandas as pd
+import DataIO
 from DataIO import ReadPETruth, ReadParticleType
 from time import time
 from multiprocessing import Pool
 from Grader import calAUC
-
-
-class AnswerData(tables.IsDescription) :
-    EventID = tables.Int64Col(pos=0)
-    Alpha = tables.Float32Col(pos=1)
 
 
 def CalulateStd(PETruth) :
@@ -68,7 +64,7 @@ def train() :
 def main(fopt, fipt, method):
     PETruth = ReadPETruth(fipt)['Data']
     AnswerFile = tables.open_file(fopt, mode='w', title='AlphaBeta', filters=tables.Filters(complevel=4))
-    AnswerTable = AnswerFile.create_table('/', 'Answer', AnswerData, 'Answer')
+    AnswerTable = AnswerFile.create_table('/', 'Answer', DataIO.AnswerData, 'Answer')
     STD = CalulateStd(PETruth)
     Answer = classifier(STD['STD'], 21.013, 9.102)
     AnswerTable.append(list(zip(STD['EventID'], Answer)))

@@ -20,4 +20,4 @@ for filename in fileSet :
     else : NetLoss_reciprocal.append(0)
 net_name = fileSet[NetLoss_reciprocal.index(max(NetLoss_reciprocal))]
 
-os.system('ln -s ' + inputdir + '/' + net_name + ' ' + output)
+os.system('ln -s ' + inputdir + net_name + ' ' + output)
