@@ -69,16 +69,16 @@ def testing(test_loader) :
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
-    lr = 5e-5
+    lr = 1e-4
 else :
     net = Net_1().cuda(device)
-    lr = 5e-4
+    lr = 1e-3
 optimizer = optim.Adam(net.parameters(), lr=lr)
 checking_period = np.int(0.25 * (len(TimeProfile_train) / BATCHSIZE))
 
 training_result = []
 testing_result = []
-for epoch in range(100):  # loop over the dataset multiple times
+for epoch in range(13):  # loop over the dataset multiple times
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # get the inputs
@@ -104,7 +104,7 @@ for epoch in range(100):  # loop over the dataset multiple times
             running_loss = 0.0
 
     # checking results in testing_s
-    if epoch % 9 == 0:
+    if epoch % 4 == 0:
         test_performance = testing(test_loader)
         print('epoch ', str(epoch), ' test:', test_performance)
         testing_record.write('%4f ' % (test_performance))

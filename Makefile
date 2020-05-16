@@ -9,11 +9,11 @@ PreTrain:=net.txt
 
 all: $(method)/sub.h5
 
+sub : model $(datfold)/sub.h5
+
 model : $(seq:%=$(NetDir)/ab.torch_net%)
 
 data : $(seq:%=$(datfold)/$(trainprefix)%.h5)
-
-sub : $(datfold)/sub.h5
 
 $(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(NetDir)/ab.torch_net$(word $(words $(seq)), $(seq))
 	python3 -u Inference.py $< -M $(word 2,$^) -o $@

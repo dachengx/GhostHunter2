@@ -29,7 +29,7 @@ def main(filename, Model, SavePath):
         inputs = data[0]
         inputs = Variable(inputs)
         outputs = net(inputs).cpu().detach().numpy()
-        Answer[i] = outputs[1]/outputs.sum()
+        Answer[i] = outputs[0][1]
 
     AnswerFile = tables.open_file(SavePath, mode='w', filters=tables.Filters(complevel=4))
     AnswerTable = AnswerFile.create_table('/', 'Answer', DataIO.AnswerData)

@@ -17,15 +17,15 @@ class Net_1(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
-        m = nn.Sigmoid()
-#m = nn.LeakyReLU(0.05)
-#drop_out = nn.Dropout(0.9)
+        #m = nn.Sigmoid()
+        m = nn.LeakyReLU(0.05)
+        mf = nn.Softmax(dim=1)
+        drop_out = nn.Dropout(0.9)
         x = torch.unsqueeze(x, 1)
         x = m(self.conv1(x))
         x = m(self.conv2(x))
         x = m(self.conv3(x))
-        x = torch.sigmoid(self.conv4(x))
-        x = x.squeeze()
+        x = mf(self.conv4(x).squeeze(3).squeeze(1))
         return x
 
     def _initialize_weights(self):
