@@ -25,7 +25,7 @@ def main(filename, Model, SavePath):
     DataLoader = Data.DataLoader(dataset=ProblemData, batch_size=1, shuffle=False, pin_memory=False)
     net = torch.load(Model, map_location=device)
     Answer = np.zeros(len(EventID)).astype(np.float32)
-    for i, data in tqdm(enumerate(DataLoader, 0)):
+    for i, data in enumerate(tqdm(DataLoader, 0)):
         inputs = data[0]
         inputs = Variable(inputs)
         outputs = net(inputs).cpu().detach().numpy()

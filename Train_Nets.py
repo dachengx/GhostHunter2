@@ -47,13 +47,13 @@ TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
 TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
 train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).float().cuda(device=device), 
                                 torch.from_numpy(ParticleType_train).long().cuda(device=device))
-train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
+train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
 test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).float().cuda(device=device),
                                 torch.from_numpy(ParticleType_test).long().cuda(device=device))
-test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False)
+test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
 trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).float().cuda(device=device),
                                 torch.from_numpy(ParticleType_test[0:1000]).long().cuda(device=device))
-trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False)
+trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False, drop_last=True)
 
 def testing(test_loader) :
     batch_count = 0
@@ -69,10 +69,10 @@ def testing(test_loader) :
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
-    lr = 5e-4
+    lr = 5e-5
 else :
     net = Net_1().cuda(device)
-    lr = 1e-4
+    lr = 5e-4
 optimizer = optim.Adam(net.parameters(), lr=lr)
 checking_period = np.int(0.25 * (len(TimeProfile_train) / BATCHSIZE))
 

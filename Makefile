@@ -1,6 +1,6 @@
 SHELL:=bash
 method:=Threshold
-seq:=$(shell seq 0 9)
+seq:=$(shell seq 0 1)
 prefix:=pre-
 trainprefix:=train-
 datfold:=/srv/abpid/dataset
@@ -9,19 +9,18 @@ PreTrain:=net.txt
 
 all: $(method)/sub.h5
 
-model : $(NetDir)/ab.torch_net
+model : $(seq:%=$(NetDir)/ab.torch_net%)
+
+data : $(seq:%=$(datfold)/$(trainprefix)%.h5)
 
 sub : $(datfold)/sub.h5
 
-$(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(NetDir)/ab.torch_net
+$(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(NetDir)/ab.torch_net$(word $(words $(seq)), $(seq))
 	python3 -u Inference.py $< -M $(word 2,$^) -o $@
-
-$(NetDir)/ab.torch_net : $(seq:%=$(NetDir)/ab.torch_net%)
-	python3 -u Choose_Nets.py $(dir $<) -o $@
 
 define train
 $(NetDir)/ab.torch_net% : $(NetDir)/.Training_finished%
-	python3 -u Choose_Nets.py $$(dir $$<) -P $$(PreTrain) -o $$@
+	python3 -u Choose_Nets.py $$< -P $$(PreTrain) -o $$@
 
 $(NetDir)/.Training_finished% : $(datfold)/$(trainprefix)%.h5
 	@mkdir -p $$(dir $$@)
