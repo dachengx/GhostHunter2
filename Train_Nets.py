@@ -5,12 +5,21 @@ psr = argparse.ArgumentParser()
 psr.add_argument('ipt', help='input file prefix', type=str)
 psr.add_argument('-o', '--outputdir', dest='opt', help='output_dir')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
-psr.add_argument('-P', '--pretrained', dest='pretained_model', nargs='?', type=str, const='')
+psr.add_argument('-P', '--pretrained', dest='pretrained', type=str)
 args = psr.parse_args()
 SavePath = args.opt
 filename = args.ipt
 BATCHSIZE = args.BAT
-Model = args.pretained_model
+
+import os
+import time
+
+if os.path.exists(args.pretrained):
+    with open(args.pretrained, 'r') as fp:
+        lines = fp.readlines()
+        Model = lines[0]
+else:
+     Model = ''
 
 import numpy as np
 import torch
@@ -22,11 +31,6 @@ from sklearn.model_selection import train_test_split
 import DataIO
 from CNN_Module import Net_1
 
-import os
-import time
-
-if not os.path.exists(SavePath):
-    os.makedirs(SavePath)
 localtime = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
 training_record_name = SavePath + 'training_record_' + localtime
 testing_record_name = SavePath + 'testing_record_' + localtime
@@ -106,7 +110,7 @@ for epoch in range(100):  # loop over the dataset multiple times
         testing_record.write('%4f ' % (test_performance))
         testing_result.append(test_performance)
         # saving network
-        save_name = SavePath + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
+        save_name = SavePath + filename[-4] + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
         torch.save(net, save_name)
 
 print(training_result)
