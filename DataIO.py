@@ -37,6 +37,15 @@ def ReadParticleType(filename) :
     return ParticleType
 
 
+def ReadWaveform(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    Waveform = iptfile.root.Waveform[:]
+    keys = iptfile.root.Waveform.colnames
+    Waveform_DataFrame = pd.DataFrame({key: list(Waveform[key]) for key in keys})
+    iptfile.close()
+    return {'Data': Waveform, 'DataFrame': Waveform_DataFrame}
+
+
 def ReadTrainSet(filename) :
     iptfile = tables.open_file(filename, 'r')
     ParticleType = iptfile.root.ParticleType[:]
