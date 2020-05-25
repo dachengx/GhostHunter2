@@ -49,7 +49,7 @@ Charges = VCalCharge(Waveform["Waveform"])
 
 
 @numba.jit
-def MakeChargeImage(EventIDs, ChannelIDs, Charges) :
+def MakeChargeImage(EventIDs, ChannelIDs, Charges, θ_index, φ_index) :
     ChargeImage = np.zeros((nEvents, 30, 30), dtype=np.float32)
     for i in range(len(EventIDs)) :
         channelid = ChannelIDs[i]
@@ -63,7 +63,7 @@ class ChargeData(tables.IsDescription) :
     Alpha = tables.BoolCol(pos=2)
 
 
-ChargeImage = MakeChargeImage(Waveform["EventID"], Waveform["ChannelID"], Charges)
+ChargeImage = MakeChargeImage(Waveform["EventID"], Waveform["ChannelID"], Charges, θ_index, φ_index)
 pre_file = tables.open_file(opt, mode="w", filters=tables.Filters(complevel=5))
 TrainTable = pre_file.create_table("/", "TrainTable", ChargeData, "TrainTable")
 Row = TrainTable.row
