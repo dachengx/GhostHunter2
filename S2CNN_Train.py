@@ -28,9 +28,11 @@ def load_data(batch_size):
     with tables.open_file(ipt) as fip :
         dataset = fip.root.TrainTable[:]
     train_data, test_data, train_labels, test_labels = train_test_split(dataset["ChargeImage"], dataset["Alpha"], test_size=0.05, random_state=42)
-    train_dataset = data_utils.TensorDataset(torch.from_numpy(train_data), torch.from_numpy(train_labels).float())
+    train_data = train_data.reshape((train_data.shape[0], 1, train_data.shape[1], train_data.shape[2]))
+    test_data = test_data.reshape((test_data.shape[0], 1, test_data.shape[1], test_data.shape[2]))
+    train_dataset = data_utils.TensorDataset(torch.from_numpy(train_data), torch.from_numpy(train_labels).long())
     train_loader = data_utils.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataset = data_utils.TensorDataset(torch.from_numpy(test_data), torch.from_numpy(test_labels).float())
+    test_dataset = data_utils.TensorDataset(torch.from_numpy(test_data), torch.from_numpy(test_labels).long())
     test_loader = data_utils.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
     return train_loader, test_loader, train_dataset, test_dataset
 
@@ -54,22 +56,39 @@ criterion = criterion.to(device)
 
 optimizer = torch.optim.Adam(classifier.parameters(), lr=5e-3)
 
-# for epoch in range(NUM_EPOCHS):
-#     for i, (images, labels) in enumerate(train_loader):
-#         classifier.train()
-# 
-#         images = images.to(DEVICE)
-#         labels = labels.to(DEVICE)
-# 
-#         optimizer.zero_grad()
-#         outputs = classifier(images)
-#         loss = criterion(outputs, labels)
-#         loss.backward()
-# 
-#         optimizer.step()
-# 
-#         print('\rEpoch [{0}/{1}], Iter [{2}/{3}] Loss: {4:.4f}'.format(
-#             epoch+1, NUM_EPOCHS, i+1, len(train_dataset)//BATCH_SIZE,
-#             loss.item()), end="")
+NUM_EPOCHS = 10
+for epoch in range(NUM_EPOCHS):
+    for i, (images, labels) in enumerate(train_loader):
+        classifier.train()
 
+        images = images.to(device)
+        labels = labels.to(device)
+
+        optimizer.zero_grad()
+        outputs = classifier(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+
+        optimizer.step()
+
+        print('\rEpoch [{0}/{1}], Iter [{2}/{3}] Loss: {4:.4f}'.format(
+            epoch + 1, NUM_EPOCHS, i + 1, len(train_dataset) // BATCHSIZE,
+            loss.item()), end="")
+    print("")
+    correct = 0
+    total = 0
+    for images, labels in test_loader:
+
+        classifier.eval()
+
+        with torch.no_grad():
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = classifier(images)
+            _, predicted = torch.max(outputs, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).long().sum().item()
+
+    print('Test Accuracy: {0}'.format(100 * correct / total))
 embed()

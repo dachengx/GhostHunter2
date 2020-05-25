@@ -13,7 +13,7 @@ class S2ConvNet_original(nn.Module):
 
         f1 = 20
         f2 = 40
-        f_output = 10
+        f_output = 2
 
         b_in = 15
         b_l1 = 10
