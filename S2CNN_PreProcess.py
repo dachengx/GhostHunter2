@@ -64,7 +64,7 @@ class ChargeData(tables.IsDescription) :
 
 
 ChargeImage = MakeChargeImage(Waveform["EventID"], Waveform["ChannelID"], Charges)
-pre_file = tables.open_file(opt, mode="w")
+pre_file = tables.open_file(opt, mode="w", filters=tables.Filters(complevel=5))
 TrainTable = pre_file.create_table("/", "TrainTable", ChargeData, "TrainTable")
 Row = TrainTable.row
 for i in range(nEvents) :
