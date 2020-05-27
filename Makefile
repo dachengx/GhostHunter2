@@ -1,7 +1,7 @@
 SHELL:=bash
 method:=Threshold
 seq:=$(shell seq 0 1)
-prefix:=pre-
+prefix:=final-
 trainprefix:=train-
 datfold:=/srv/abpid/dataset
 NetDir:=/srv/abpid/Network_Models
@@ -47,7 +47,7 @@ $(datfold)/$(prefix)%.h5 :
 	wget http://hep.tsinghua.edu.cn/~orv/dc/$(notdir $@) -O $@
 $(datfold)/$(prefix)problem.h5 :
 	@mkdir -p $(dir $@)
-	wget http://hep.tsinghua.edu.cn/~orv/dc/pre-problem.h5 -O $@
+	wget http://hep.tsinghua.edu.cn/~orv/dc/$(prefix)problem.h5 -O $@
 
 .DELETE_ON_ERROR:
 .SECONDARY:

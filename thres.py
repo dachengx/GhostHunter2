@@ -5,7 +5,7 @@ import tables
 from tqdm import tqdm
 import pandas as pd
 import DataIO
-from DataIO import ReadPETruth, ReadParticleType
+from DataIO import ReadPETruth, ReadParticleType, ReadPEGuess
 from time import time
 from multiprocessing import Pool
 from Grader import calAUC
@@ -62,7 +62,7 @@ def train() :
 
 
 def main(fopt, fipt, method):
-    PETruth = ReadPETruth(fipt)['Data']
+    PETruth = ReadPEGuess(fipt)['Data']
     AnswerFile = tables.open_file(fopt, mode='w', title='AlphaBeta', filters=tables.Filters(complevel=4))
     AnswerTable = AnswerFile.create_table('/', 'Answer', DataIO.AnswerData, 'Answer')
     STD = CalulateStd(PETruth)

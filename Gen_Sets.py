@@ -11,7 +11,10 @@ WindowSize = [200, 400]
 def main(fipt, fopt):
     TrainFile = tables.open_file(fopt, mode='a', filters=tables.Filters(complevel=4))
 
-    PETruth = DataIO.ReadPETruth(fipt)['DataFrame']
+    if 'problem' in fipt:
+        PETruth = DataIO.ReadPEGuess(fipt)['DataFrame']
+    else:
+        PETruth = DataIO.ReadPETruth(fipt)['DataFrame']
     EventID = np.unique(PETruth['EventID'].to_numpy())
     TimeProfile = DataIO.MakeTimeProfile(PETruth, WindowSize)
     assert TimeProfile.shape[0] == EventID.shape[0]
