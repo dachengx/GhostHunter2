@@ -18,21 +18,24 @@ import torch
 from torch import nn
 import torch.utils.data as data_utils
 from sklearn.model_selection import train_test_split
-device = torch.device(args.dev)
+if args.dev == 'cpu' :
+    device = torch.device(args.dev)
+else :
+    device = torch.device(int(args.dev))
 
-from S2CNN_Net import S2ConvNet_original
+from S2CNN_Net import S2ConvNet_deep, S2ConvNet_original
 from IPython import embed
 
 
 def load_data(batch_size):
     with tables.open_file(ipt) as fip :
-        dataset = fip.root.TrainTable[:]
-    train_data, test_data, train_labels, test_labels = train_test_split(dataset["ChargeImage"], dataset["Alpha"], test_size=0.05, random_state=42)
-    train_data = train_data.reshape((train_data.shape[0], 1, train_data.shape[1], train_data.shape[2]))
-    test_data = test_data.reshape((test_data.shape[0], 1, test_data.shape[1], test_data.shape[2]))
-    train_dataset = data_utils.TensorDataset(torch.from_numpy(train_data), torch.from_numpy(train_labels).long())
+        dataset = fip.root.TrainTable[0:3000]
+    train_data, test_data, train_labels, test_labels = train_test_split(dataset["HitImage"], dataset["Alpha"], test_size=0.05, random_state=42)
+    train_data = train_data.reshape((train_data.shape[0], 1029, train_data.shape[1], train_data.shape[2]))
+    test_data = test_data.reshape((test_data.shape[0], 1029, test_data.shape[1], test_data.shape[2]))
+    train_dataset = data_utils.TensorDataset(torch.from_numpy(train_data).float(), torch.from_numpy(train_labels).long())
     train_loader = data_utils.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataset = data_utils.TensorDataset(torch.from_numpy(test_data), torch.from_numpy(test_labels).long())
+    test_dataset = data_utils.TensorDataset(torch.from_numpy(test_data).float(), torch.from_numpy(test_labels).long())
     test_loader = data_utils.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
     return train_loader, test_loader, train_dataset, test_dataset
 
@@ -47,7 +50,7 @@ PMT_grid = tuple(zip(PMTPosition["θ"], PMTPosition["φ"]))
 
 train_loader, test_loader, train_dataset, _ = load_data(BATCHSIZE)
 
-classifier = S2ConvNet_original(PMT_grid)
+classifier = S2ConvNet_deep(PMT_grid)
 classifier.to(device)
 print("#params", sum(x.numel() for x in classifier.parameters()))
 

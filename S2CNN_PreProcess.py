@@ -14,6 +14,7 @@ import numpy as np
 from JPwaptool import JPwaptool
 import numba
 import pandas as pd
+from tqdm import tqdm
 
 from IPython import embed
 
@@ -36,41 +37,59 @@ Waveform = DataIO.ReadWaveform("/srv/abpid/dataset/pre-0.h5")
 Waveform, Waveform_DataFrame = Waveform["Data"], Waveform["DataFrame"]
 nEvents = Waveform["EventID"][-1]
 
-stream = JPwaptool(1029, 150, 600, 10, 30)
+
+# def CalPed(w) :
+#     stream.FastCalculate(w)
+#     return stream.ChannelInfo.Ped
+# 
+# 
+# VCalPed = np.vectorize(CalPed, signature="(n)->()")
+# Peds = VCalPed(Waveform["Waveform"])
 
 
-def CalCharge(w) :
-    stream.FastCalculate(w)
-    return stream.ChannelInfo.Charge
+# @numba.jit
+# def MakeWaveImage(EventIDs, ChannelIDs, Charges, θ_index, φ_index) :
+#     WaveImage = np.zeros((nEvents, 30, 30, 1029), dtype=np.float32)
+#     for i in range(len(EventIDs)) :
+#         channelid = ChannelIDs[i]
+#         WaveImage[EventIDs[i] - 1][φ_index[channelid]][θ_index[channelid]] = Ped[i] - Waveform["Waveform"][i]
+#     return WaveImage
 
 
-VCalCharge = np.vectorize(CalCharge, signature="(n)->()")
-Charges = VCalCharge(Waveform["Waveform"])
-
-
-@numba.jit
-def MakeChargeImage(EventIDs, ChannelIDs, Charges, θ_index, φ_index) :
-    ChargeImage = np.zeros((nEvents, 30, 30), dtype=np.float32)
-    for i in range(len(EventIDs)) :
-        channelid = ChannelIDs[i]
-        ChargeImage[EventIDs[i] - 1][φ_index[channelid]][θ_index[channelid]] = Charges[i]
-    return ChargeImage
-
-
-class ChargeData(tables.IsDescription) :
+class WaveData(tables.IsDescription) :
     EventID = tables.Int64Col(pos=0)
-    ChargeImage = tables.Float32Col(pos=1, shape=(30, 30))
-    Alpha = tables.BoolCol(pos=2)
+    WaveImage = tables.Float32Col(pos=1, shape=(30, 30, 1029))
+    HitImage = tables.Int8Col(pos=2, shape=(30, 30, 1029))
+    Alpha = tables.BoolCol(pos=3)
 
 
-ChargeImage = MakeChargeImage(Waveform["EventID"], Waveform["ChannelID"], Charges, θ_index, φ_index)
-pre_file = tables.open_file(opt, mode="w", filters=tables.Filters(complevel=5))
-TrainTable = pre_file.create_table("/", "TrainTable", ChargeData, "TrainTable")
+# ChargeImage = MakeChargeImage(Waveform["EventID"], Waveform["ChannelID"], Charges, θ_index, φ_index)
+pre_file = tables.open_file(opt, mode="w", filters=tables.Filters(complevel=9))
+TrainTable = pre_file.create_table("/", "TrainTable", WaveData, "TrainTable")
 Row = TrainTable.row
-for i in range(nEvents) :
-    Row["EventID"] = ParticleTruth["EventID"][i]
+
+EventIDs, EventID_index = np.unique(Waveform["EventID"], return_index=True)
+EventID_index = np.append(EventID_index, len(Waveform))
+EventIDs_pe, EventID_peindex = np.unique(PETruth["EventID"], return_index=True)
+EventID_peindex = np.append(EventID_peindex, len(PETruth))
+
+stream = JPwaptool(1029, 150, 200, 10, 30)
+# for i in tqdm(range(nEvents)) :
+for i in tqdm(range(30000)) :
+    Row["EventID"] = EventIDs[i]
     Row["Alpha"] = ParticleTruth["Alpha"][i]
-    Row["ChargeImage"] = Charges[i]
+    WaveImage = np.zeros((30,30,1029), dtype=np.float32)
+    for j in range(EventID_index[i], EventID_index[i+1]) :
+        channelid = Waveform["ChannelID"][j]
+        stream.FastCalculate(Waveform["Waveform"][i])
+        WaveImage[φ_index[channelid]][θ_index[channelid]] = stream.ChannelInfo.Ped - Waveform["Waveform"][i]
+    HitImage = np.zeros((30,30,1029), dtype=np.int8)
+    for k in range(EventID_peindex[i], EventID_peindex[i+1]) :
+        channelid = PETruth["ChannelID"][k]
+        # print("{0}: {1}".format(channelid, PETruth["PETime"][k]))
+        HitImage[φ_index[channelid]][θ_index[channelid]][PETruth["PETime"][k]] += 1
+    Row["WaveImage"] = WaveImage
+    Row["HitImage"] = HitImage
     Row.append()
 TrainTable.flush()
 pre_file.close()
