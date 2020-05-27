@@ -21,6 +21,15 @@ def ReadPETruth(filename) :
     return {'Data': PETruth, 'DataFrame': PETruth_DataFrame}
 
 
+def ReadPEGuess(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    PEGuess = iptfile.root.PEGuess[:]
+    keys = iptfile.root.PEGuess.colnames
+    PEGuess_DataFrame = pd.DataFrame({key: PEGuess[key] for key in keys})
+    iptfile.close()
+    return {'Data': PEGuess, 'DataFrame': PEGuess_DataFrame}
+
+
 def ReadParticleTruth(filename) :
     iptfile = tables.open_file(filename, 'r')
     ParticleTruth = iptfile.root.ParticleTruth[:]
@@ -53,12 +62,14 @@ def ReadTrainSet(filename) :
     iptfile.close()
     return TimeProfile, ParticleType
 
+
 def ReadProblemSet(filename):
     iptfile = tables.open_file(filename, 'r')
     EventID = iptfile.root.EventID[:]
     TimeProfile = iptfile.root.TimeProfile[:]
     iptfile.close()
     return EventID, TimeProfile
+
 
 def GetProfile(PETruth, WindowSize, nChannels):
     Time = np.zeros((nChannels, WindowSize[1] - WindowSize[0]), dtype=np.uint8)
