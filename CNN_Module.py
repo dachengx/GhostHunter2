@@ -10,10 +10,11 @@ class Net_1(nn.Module):
         super(Net_1, self).__init__()
 
         # input is 1000*30
-        self.conv1 = nn.Conv2d(1, 15, kernel_size=(15, 10), stride=(5, 1))
-        self.conv2 = nn.Conv2d(15, 10, kernel_size=(10, 9), stride=(2, 1))
-        self.conv3 = nn.Conv2d(10, 5, (9, 8))
-        self.conv4 = nn.Conv2d(5, 1, (6, 6))
+        self.conv1 = nn.Conv2d(1, 25, kernel_size=(15, 1), stride=(6, 1))
+        self.conv2 = nn.Conv2d(25, 20, kernel_size=(14, 11), stride=(3, 1))
+        self.conv3 = nn.Conv2d(20, 15, kernel_size=(11, 9), stride=(2, 1))
+        self.conv4 = nn.Conv2d(15, 10, kernel_size=(10, 7), stride=(2, 1))
+        self.conv5 = nn.Conv2d(10, 1, (6, 6))
         self._initialize_weights()
 
     def forward(self, x):
@@ -25,7 +26,8 @@ class Net_1(nn.Module):
         x = m(self.conv1(x))
         x = m(self.conv2(x))
         x = m(self.conv3(x))
-        x = mf(self.conv4(x).squeeze(3).squeeze(1))
+        x = m(self.conv4(x))
+        x = mf(self.conv5(x).squeeze(3).squeeze(1))
         return x
 
     def _initialize_weights(self):

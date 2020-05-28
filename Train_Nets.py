@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import os
+import re
+import time
+
 import argparse
 psr = argparse.ArgumentParser()
 psr.add_argument('ipt', help='input file prefix', type=str)
-psr.add_argument('-o', '--outputdir', dest='opt', help='output_dir')
+psr.add_argument('-o', '--output', dest='opt', help='output')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
 psr.add_argument('-P', '--pretrained', dest='pretrained', type=str)
+psr.add_argument('-N', '--frag', dest='frag', nargs='+', type=int)
 args = psr.parse_args()
-SavePath = args.opt
+SavePath = os.path.dirname(args.opt) + '/'
+
 filename = args.ipt
 BATCHSIZE = args.BAT
-
-import os
-import time
+L = args.frag[0]
+A = args.frag[1]
 
 if os.path.exists(args.pretrained):
     with open(args.pretrained, 'r') as fp:
@@ -43,17 +48,29 @@ device = torch.device(0)
 
 loss_set = torch.nn.CrossEntropyLoss()
 
-TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
-TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
-train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).float().cuda(device=device), 
+Wave, ParticleType = DataIO.ReadTrainSet(filename)
+N = len(Wave); a = N//(L+1)*A; b = N//(L+1)*(A+1)
+Wave_train, Wave_test, ParticleType_train, ParticleType_test = train_test_split(Wave[a:b], ParticleType[a:b], test_size=0.05, random_state=42)
+train_data = Data.TensorDataset(torch.from_numpy(Wave_train).float().cuda(device=device), 
                                 torch.from_numpy(ParticleType_train).long().cuda(device=device))
 train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
-test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).float().cuda(device=device),
+test_data = Data.TensorDataset(torch.from_numpy(Wave_test).float().cuda(device=device),
                                 torch.from_numpy(ParticleType_test).long().cuda(device=device))
 test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
-trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).float().cuda(device=device),
+trial_data = Data.TensorDataset(torch.from_numpy(Wave_test[0:1000]).float().cuda(device=device),
                                 torch.from_numpy(ParticleType_test[0:1000]).long().cuda(device=device))
 trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False, drop_last=True)
+#TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
+#TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
+#train_data = Data.TensorDataset(torch.from_numpy(TimeProfile_train).float().cuda(device=device), 
+#                                torch.from_numpy(ParticleType_train).long().cuda(device=device))
+#train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
+#test_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test).float().cuda(device=device),
+#                                torch.from_numpy(ParticleType_test).long().cuda(device=device))
+#test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
+#trial_data = Data.TensorDataset(torch.from_numpy(TimeProfile_test[0:1000]).float().cuda(device=device),
+#                                torch.from_numpy(ParticleType_test[0:1000]).long().cuda(device=device))
+#trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False, drop_last=True)
 
 def testing(test_loader) :
     batch_count = 0
@@ -69,16 +86,17 @@ def testing(test_loader) :
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
-    lr = 1e-4
+    lr = 1e-6
 else :
     net = Net_1().cuda(device)
-    lr = 1e-3
+    lr = 1e-4
 optimizer = optim.Adam(net.parameters(), lr=lr)
-checking_period = np.int(0.25 * (len(TimeProfile_train) / BATCHSIZE))
+checking_period = np.int(0.25 * (len(Wave_train) / BATCHSIZE))
 
 training_result = []
 testing_result = []
-for epoch in range(13):  # loop over the dataset multiple times
+for epoch in range(9):  # loop over the dataset multiple times
+    torch.cuda.empty_cache()
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # get the inputs
@@ -95,7 +113,8 @@ for epoch in range(13):  # loop over the dataset multiple times
         loss.backward()
         optimizer.step()
 
-        running_loss += loss.data.item()
+        running_loss += float(loss.data.item())
+        del loss; del outputs; del inputs; del labels; del data
 
         if (i + 1) % checking_period == 0:    # print every 2000 mini-batches
             print('[%d, %5d] running_loss: %.3f' %(epoch + 1, i + 1, running_loss / checking_period))
@@ -110,7 +129,7 @@ for epoch in range(13):  # loop over the dataset multiple times
         testing_record.write('%4f ' % (test_performance))
         testing_result.append(test_performance)
         # saving network
-        save_name = SavePath + filename[-4] + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
+        save_name = SavePath + filename[-4] + str(A) + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
         torch.save(net, save_name)
 
 print(training_result)
@@ -118,3 +137,19 @@ print(testing_result)
 
 training_record.close()
 testing_record.close()
+
+
+fileSet = os.listdir(SavePath)
+matchrule = re.compile(r'(\d+)_epoch(\d+)_loss(\d+(\.\d*)?|\.\d+)')
+NetLoss_reciprocal = []
+for filename in fileSet :
+    if '_epoch' in filename : NetLoss_reciprocal.append(1 / float(matchrule.match(filename)[3]))
+    else : NetLoss_reciprocal.append(0)
+net_name = fileSet[NetLoss_reciprocal.index(max(NetLoss_reciprocal))]
+modelpath = SavePath + '/' + net_name
+
+with open(args.pretrained, 'w') as fp:
+    fp.write(modelpath)
+    fp.close()
+
+os.system('ln -snf ' + modelpath + ' ' + args.opt)
