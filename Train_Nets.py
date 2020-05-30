@@ -9,15 +9,12 @@ psr = argparse.ArgumentParser()
 psr.add_argument('ipt', help='input file prefix', type=str)
 psr.add_argument('-o', '--output', dest='opt', help='output')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
-psr.add_argument('-N', '--frag', dest='frag', nargs='+', type=int)
 args = psr.parse_args()
 SavePath = os.path.dirname(args.opt) + '/'
 
 Model = args.opt
 filename = args.ipt
 BATCHSIZE = args.BAT
-L = args.frag[0]
-A = args.frag[1]
 
 import numpy as np
 import torch
@@ -42,16 +39,12 @@ device = torch.device(0)
 loss_set = torch.nn.CrossEntropyLoss()
 
 Wave, ParticleType = DataIO.ReadTrainSet(filename)
-N = len(Wave); a = N//(L+1)*A; b = N//(L+1)*(A+1)
-Wave_train, Wave_test, ParticleType_train, ParticleType_test = train_test_split(Wave[a:b], ParticleType[a:b], test_size=0.05, random_state=42)
-train_data = Data.TensorDataset(torch.from_numpy(Wave_train).float(), 
-                                torch.from_numpy(ParticleType_train).long())
+Wave_train, Wave_test, ParticleType_train, ParticleType_test = train_test_split(Wave, ParticleType, test_size=0.05, random_state=42)
+train_data = Data.TensorDataset(torch.from_numpy(Wave_train).float(), torch.from_numpy(ParticleType_train).long())
 train_loader = Data.DataLoader(dataset=train_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
-test_data = Data.TensorDataset(torch.from_numpy(Wave_test).float(),
-                                torch.from_numpy(ParticleType_test).long())
+test_data = Data.TensorDataset(torch.from_numpy(Wave_test).float(), torch.from_numpy(ParticleType_test).long())
 test_loader = Data.DataLoader(dataset=test_data, batch_size=BATCHSIZE, shuffle=True, pin_memory=False, drop_last=True)
-trial_data = Data.TensorDataset(torch.from_numpy(Wave_test[0:1000]).float(),
-                                torch.from_numpy(ParticleType_test[0:1000]).long())
+trial_data = Data.TensorDataset(torch.from_numpy(Wave_test[0:1000]).float(), torch.from_numpy(ParticleType_test[0:1000]).long())
 trial_loader = Data.DataLoader(dataset=trial_data, batch_size=BATCHSIZE, shuffle=False, pin_memory=False, drop_last=True)
 #TimeProfile, ParticleType = DataIO.ReadTrainSet(filename)
 #TimeProfile_train, TimeProfile_test, ParticleType_train, ParticleType_test = train_test_split(TimeProfile, ParticleType, test_size=0.05, random_state=42)
@@ -80,10 +73,10 @@ def testing(test_loader) :
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
-    lr = 5e-6
+    lr = 1e-5
 else :
     net = Net_1().cuda(device)
-    lr = 1e-4
+    lr = 1e-3
 optimizer = optim.Adam(net.parameters(), lr=lr)
 checking_period = np.int(0.25 * (len(Wave_train) / BATCHSIZE))
 
@@ -123,7 +116,7 @@ for epoch in range(13):  # loop over the dataset multiple times
         testing_record.write('%4f ' % (test_performance))
         testing_result.append(test_performance)
         # saving network
-        save_name = SavePath + filename[-4] + str(A) + '_epoch' + '{:02d}'.format(epoch) + '_loss' + '%.4f' % (test_performance)
+        save_name = SavePath + filename[-4] + '_epoch' + '{:02d}'.format(epoch) + '_loss' + '%.4f' % (test_performance)
         torch.save(net, save_name)
 
 print(training_result)
