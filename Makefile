@@ -8,23 +8,24 @@ trainprefix:=train-
 datfold:=/srv/abpid/dataset
 NetDir:=/srv/abpid/Network_Models
 Net:=$(NetDir)/ab.torch_net
-PreTrain:=net.txt
 
 all: $(method)/sub.h5
 
 sub : model $(datfold)/sub.h5
 
-model : $(seq:%=$(NetDir)/.Training_finished%)
+model : $(Net)
 
 data : $(seq:%=$(datfold)/$(trainprefix)%.h5)
 
 $(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(Net)
 	python3 -u Inference.py $< -M $(word 2,$^) -o $@ -N $(fragnum)
 
+$(Net) : $(seq:%=$(NetDir)/.Training_finished%)
+
 define train
 $(NetDir)/.Training_finished%$(1) : $(datfold)/$(trainprefix)%.h5
 	@mkdir -p $$(dir $$@)
-	python3 -u Train_Nets.py $$< -B 32 -o $(Net) -P $$(PreTrain) -N $(fragnum) $(1) > $$@.log 2>&1
+	python3 -u Train_Nets.py $$< -B 32 -o $(Net) -N $(fragnum) $(1) > $$@.log 2>&1
 	@touch $$@
 endef
 

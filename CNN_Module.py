@@ -10,16 +10,17 @@ class Net_1(nn.Module):
         super(Net_1, self).__init__()
 
         # input is 1000*30
-        self.conv1 = nn.Conv2d(1, 25, kernel_size=(15, 1), stride=(6, 1))
-        self.conv2 = nn.Conv2d(25, 20, kernel_size=(14, 11), stride=(3, 1))
-        self.conv3 = nn.Conv2d(20, 15, kernel_size=(11, 9), stride=(2, 1))
-        self.conv4 = nn.Conv2d(15, 10, kernel_size=(10, 7), stride=(2, 1))
-        self.conv5 = nn.Conv2d(10, 1, (6, 6))
+        self.conv1 = nn.Conv2d(1, 30, kernel_size=(15, 1), stride=(6, 1))
+        self.conv2 = nn.Conv2d(30, 30, kernel_size=(14, 30), stride=(3, 1))
+        self.conv3 = nn.Conv2d(30, 20, kernel_size=(11, 1), stride=(2, 1))
+        self.conv4 = nn.Conv2d(20, 10, kernel_size=(10, 1), stride=(2, 1))
+        self.conv5 = nn.Conv2d(10, 1, (6, 1))
         self._initialize_weights()
 
     def forward(self, x):
         #m = nn.Sigmoid()
         m = nn.LeakyReLU(0.05)
+        #m = nn.ELU()
         mf = nn.Softmax(dim=1)
         drop_out = nn.Dropout(0.9)
         x = torch.unsqueeze(x, 1)

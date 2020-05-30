@@ -9,22 +9,15 @@ psr = argparse.ArgumentParser()
 psr.add_argument('ipt', help='input file prefix', type=str)
 psr.add_argument('-o', '--output', dest='opt', help='output')
 psr.add_argument('-B', '--batchsize', dest='BAT', type=int, default=64)
-psr.add_argument('-P', '--pretrained', dest='pretrained', type=str)
 psr.add_argument('-N', '--frag', dest='frag', nargs='+', type=int)
 args = psr.parse_args()
 SavePath = os.path.dirname(args.opt) + '/'
 
+Model = args.opt
 filename = args.ipt
 BATCHSIZE = args.BAT
 L = args.frag[0]
 A = args.frag[1]
-
-if os.path.exists(args.pretrained):
-    with open(args.pretrained, 'r') as fp:
-        lines = fp.readlines()
-        Model = lines[0]
-else:
-     Model = ''
 
 import numpy as np
 import torch
@@ -86,7 +79,7 @@ def testing(test_loader) :
 
 if os.path.exists(Model) :
     net = torch.load(Model, map_location=device)
-    lr = 1e-6
+    lr = 1e-5
 else :
     net = Net_1().cuda(device)
     lr = 1e-4
@@ -95,7 +88,7 @@ checking_period = np.int(0.25 * (len(Wave_train) / BATCHSIZE))
 
 training_result = []
 testing_result = []
-for epoch in range(9):  # loop over the dataset multiple times
+for epoch in range(13):  # loop over the dataset multiple times
     torch.cuda.empty_cache()
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
@@ -129,7 +122,7 @@ for epoch in range(9):  # loop over the dataset multiple times
         testing_record.write('%4f ' % (test_performance))
         testing_result.append(test_performance)
         # saving network
-        save_name = SavePath + filename[-4] + str(A) + '_epoch' + str(epoch) + '_loss' + '%.4f' % (test_performance)
+        save_name = SavePath + filename[-4] + str(A) + '_epoch' + '{:02d}'.format(epoch) + '_loss' + '%.4f' % (test_performance)
         torch.save(net, save_name)
 
 print(training_result)
@@ -146,10 +139,6 @@ for filename in fileSet :
     if '_epoch' in filename : NetLoss_reciprocal.append(1 / float(matchrule.match(filename)[3]))
     else : NetLoss_reciprocal.append(0)
 net_name = fileSet[NetLoss_reciprocal.index(max(NetLoss_reciprocal))]
-modelpath = SavePath + '/' + net_name
-
-with open(args.pretrained, 'w') as fp:
-    fp.write(modelpath)
-    fp.close()
+modelpath = SavePath + net_name
 
 os.system('ln -snf ' + modelpath + ' ' + args.opt)
