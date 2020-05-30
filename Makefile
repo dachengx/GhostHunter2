@@ -1,7 +1,8 @@
 SHELL:=bash
 method:=Threshold
-seq:=$(shell seq -w 00 04) $(shell seq -w 10 14) $(shell seq -w 20 24) $(shell seq -w 30 34)
-fragnum:=4
+dataseq:=$(shell seq 0 3)
+fragnum:=1
+seq:=$(shell seq -w 00 01) $(shell seq -w 10 11) $(shell seq -w 20 21) $(shell seq -w 30 31)
 fragseq:=$(shell seq 0 ${fragnum})
 prefix:=final-
 trainprefix:=train-
@@ -15,7 +16,7 @@ sub : model $(datfold)/sub.h5
 
 model : $(Net)
 
-data : $(seq:%=$(datfold)/$(trainprefix)%.h5)
+data : $(dataseq:%=$(datfold)/$(trainprefix)%.h5)
 
 $(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(Net)
 	python3 -u Inference.py $< -M $(word 2,$^) -o $@ -N $(fragnum)
