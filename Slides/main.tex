@@ -77,7 +77,7 @@
 \begin{frame}
 \frametitle{平面二维卷积神经网络}
 \begin{itemize}
-    \item <1-> 随后设计了一个卷积神经网络（CNN）
+    \item <1-> 随后设计了一个7层卷积神经网络（CNN）
     \item <2-> Inputs：30个PMT在1029ns的采样时间内的ADC电压输出（$1029\times30$）
     \item <3-> Outputs：对$\alpha$与$\beta$两种粒子的预测概率
     \item <4-> 使用stride迅速缩小Outputs的大小
@@ -89,7 +89,7 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{算法}
+\frametitle{平面二维卷积神经网络}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\linewidth]{net.pdf}
@@ -118,7 +118,8 @@
 \begin{itemize}
     \item 在Ghost Hunter2020决赛中对final-problem.h5处理
     \item 环境：NVIDIA GeForce GTX 1080Ti
-    \item 用时：4min（包括CPU时间，预处理1.5min)
+    \item 用时：4min（包括CPU时间，不包括预处理)
+    \item 预处理：1.5min
     \item AUC：0.748，(6th)
 \end{itemize}
 \end{columns}

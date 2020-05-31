@@ -9,7 +9,7 @@ class Net_1(nn.Module):
     def __init__(self):
         super(Net_1, self).__init__()
 
-        # input is 1000*30
+        # input is 1029*30
         self.conv1 = nn.Conv2d(1, 30, kernel_size=(9, 1), stride=(3, 1))
         self.conv2 = nn.Conv2d(30, 25, kernel_size=(9, 6), stride=(2, 1))
         self.conv3 = nn.Conv2d(25, 20, kernel_size=(7, 6), stride=(2, 1))
