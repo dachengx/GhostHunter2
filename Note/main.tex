@@ -50,7 +50,7 @@ Jinping中微子实验中，放射源释放的$\alpha$与$\beta$粒子会引起�
 \section{方法回顾}
 \subsection{闪烁光时间尺度法}
 通过对模拟数据的分析及前人对液体闪烁体的性质研究，可以知道$\alpha$粒子的长寿命激发较多，液闪发光时间的尺度较大。
-据此，可以分析每个事件中光子击中PMT的时间分布的标准差，建立此标准差与概率之间的映射关系（$\sigma \in \mathbb{R}^{+} \rightarrow (0,1)$），
+据此，可以分析每个事件中光子击中PMT的时间分布的标准差，建立此标准差与概率之间的线性映射关系（$\sigma \in \mathbb{R}^{+} \rightarrow (0,1)$），
 映射关系形如：（$x = \sigma$）
 
 $y = \begin{cases}
@@ -70,13 +70,16 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 \subsection{平面二维卷积神经网络} % (fold)
 \label{sub:平面二维卷积神经网络}
 我们随后设计了一个卷积神经网络，以30个PMT在1029ns的采样时间内的ADC电压输出（即输出电压波形）作为CNN的输入量，直接输出对两种粒子的预测概率。
-首先对各个PMT的输出波形进行处理，之后使用stride迅速缩小卷积层的大小。网络中总参数为81526个，使用的激活函数为LeakyReLU（$\alpha=0.1$）
+首先对各个PMT的输出波形进行处理，之后使用stride迅速缩小卷积层的大小。网络中总参数为81526个，
+使用的激活函数为LeakyReLU（$\alpha=0.1$），使用交叉熵函数（Cross entropy）作为损失（loss）函数。
+
+
 下图为我们使用的CNN的结构。
 
 \begin{figure}[H]
     \centering
-    \caption{CNN结构}
     \includegraphics[width=1.0\linewidth]{net.pdf}
+    \caption{CNN结构}
 \end{figure}
 % subsection平面二维卷积神经网络 (end)
 \subsection{球面卷积神经网络试验} % (fold)
@@ -94,10 +97,29 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 
 该方法没有效果，训练结果与随机猜测无异。
 % subsection球面卷积神经网络试验 (end)
-\section{算法检测结果}
 
+
+\section{算法检测结果}
+我们使用了Jinping模拟数据的前4个：final-0.h5 - final-3.h5作为训练集（train set），
+取训练集中的5\%作为测试集（test set），对每个训练集遍历12次，每4次训练后用测试集测试一次并保存模型，最后选取测试中loss最低的模型。
+在我们的测试中，loss最低为$0.6007$。作为对比，完全随即猜测得到的鉴别结果的loss，理论值为$\ln{2}\approx0.6932$。
+
+对final-0.h5使用CNN处理可以给出粒子鉴别结果，使用NVIDIA GeForce GTX 1080Ti显卡进行处理，用时约4min。
+
+将上述结果与final-0.h5中的真值进行对比，得到以下ROC曲线，其AUC $\approx0.757$：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\linewidth]{ROC.png}
+    \caption{CNN在final-0.h5上的ROC曲线}
+\end{figure}
+
+在Ghost Hunter2020决赛中，最终得到的AUC $\approx0.748$。
 
 \section{展望}
+\begin{itemize}
+    \item 在制作训练集的过程中没有对PMT输出电压进行任何处理。在减去基线后，可能对CNN训练及预测结果有一定提升
+    \item 激活函数LeakyReLU的参数选取中，只测试了$0.05$和$0.1$。可以通过交叉验证来优化激活函数。
+\end{itemize}
 
 % \bibliography{main.bib}
 \end{document}
