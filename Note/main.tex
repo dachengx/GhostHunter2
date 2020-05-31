@@ -16,13 +16,13 @@
 \usepackage{pdfpages}
 
 \title{$\alpha$与$\beta$粒子鉴别程序设计报告}
-
-\begin{document}
 \author[1]{徐大成}
 \author[2]{武益阳}
 \affil[1]{清华大学工程物理系}
 \affil[2]{清华大学物理系}
 \date{2020年5月}
+
+\begin{document}
 
 \maketitle
 
@@ -63,7 +63,7 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 当$\beta$粒子的速度超过液闪中的光速时，$\beta$粒子的运动会产生切伦科夫光（Cherenkov radiation），在PMT阵列上会产生切伦科夫环图样。
 可以通过对切伦科夫环的识别来鉴别$\alpha$与$\beta$粒子。
 
-\section{算法回顾}
+\section{算法}
 我们随后设计了一个卷积神经网络，以30个PMT在1029ns的采样时间内的ADC电压输出（即输出电压波形）作为CNN的输入量，直接输出对两种粒子的预测概率。
 首先对各个PMT的输出波形进行处理，之后使用stride迅速缩小卷积层的大小。网络中总参数为81526个，
 使用的激活函数为LeakyReLU（$\alpha=0.1$），使用交叉熵函数（Cross entropy）作为损失（loss）函数。
@@ -93,7 +93,7 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 
 在Ghost Hunter2020决赛中，最终得到的AUC $\approx0.748$。
 
-\section{展望}
+\section{改进}
 \begin{itemize}
     \item 在制作训练集的过程中没有对PMT输出电压进行任何处理。在减去基线后，可能对CNN训练及预测结果有一定提升
     \item 激活函数LeakyReLU的参数选取中，只测试了$0.05$和$0.1$。可以通过交叉验证来优化激活函数。
