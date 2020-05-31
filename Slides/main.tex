@@ -10,7 +10,6 @@
 \usepackage{listings}
 \usepackage{multicol}
 \usepackage{verbatim}
-\usepackage{authblk}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -46,15 +45,45 @@
 \section{算法}
 
 \begin{frame}
-\frametitle{算法}
+\frametitle{CNN}
 \begin{itemize}
-    \item <1-> 首先尝试了球面卷积神经网络（Spherical CNN, S2CNN）
-    \item <2-> 随后设计了一个卷积神经网络（CNN）
-    \item <3-> Inputs：30个PMT在1029ns的采样时间内的ADC电压输出
+    \item 首先尝试了球面卷积神经网络（Spherical CNN, S2CNN）
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{球面卷积神经网络试验}
+如果我们希望从切伦科夫环的角度来进行粒子判别，针对探测器的球面流形进行神经网络显得更加自然、有物理意义。我们尝试了使用S2CNN，主要有以下几步：
+\begin{enumerate}
+    \item <1-> 将PMT的位置转化为方位角坐标$(\theta, \varphi)$
+    \item <2-> 在$(\theta, \varphi)$相空间构造一个30$\times$30的格点，30个PMT位置就在30个格点上，值为该事例在该PMT上响应出的电荷。
+    \item <3-> 使用30个PMT的位置作为卷积核（一个球面流形卷积核），遍历离散化的SO(3)群元素：将每个SO(3)作用到卷积核上，卷积核被旋转；旋转后的卷积核与输入层做内积，作为一个输出。遍历完成后输出一个在SO(3)空间的张量。
+    \item <4-> 如法炮制，只不过这次卷积核是SO(3)的一些格点。
+    \item <5-> 卷积结果最终线性映射回到粒子判别上
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{球面卷积神经网络试验}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{S2CNN_input.pdf}
+    \caption{S2CNN输入层：PMT电荷}
+    \label{fig:S2CNN_input}
+\end{figure}
+该方法没有效果，训练结果与随机猜测无异。
+\end{frame}
+
+\begin{frame}
+\frametitle{平面二维卷积神经网络}
+\begin{itemize}
+    \item <1-> 随后设计了一个卷积神经网络（CNN）
+    \item <2-> Inputs：30个PMT在1029ns的采样时间内的ADC电压输出（$1029\times30$）
     \item <3-> Outputs：对$\alpha$与$\beta$两种粒子的预测概率
-    \item <4-> 使用stride迅速缩小卷积层的大小
+    \item <4-> 使用stride迅速缩小Outputs的大小
     \item <5-> 网络中总参数为81526个
     \item <6-> Activation Function：LeakyReLU（$\alpha=0.1$）
+    \item <7-> 输出层：Softmax
     \item <7-> Loss：交叉熵函数（Cross entropy）
 \end{itemize}
 \end{frame}
@@ -89,7 +118,7 @@
 \begin{itemize}
     \item 在Ghost Hunter2020决赛中对final-problem.h5处理
     \item 环境：NVIDIA GeForce GTX 1080Ti
-    \item 用时：4min（包括CPU时间）
+    \item 用时：4min（包括CPU时间，预处理1.5min)
     \item AUC：0.748，(6th)
 \end{itemize}
 \end{columns}
