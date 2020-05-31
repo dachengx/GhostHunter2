@@ -14,6 +14,9 @@
 \usepackage{mathrsfs}
 \usepackage{bm}
 \usepackage{pdfpages}
+\definecolor{pureblue}{rgb}{0,0,1}
+\hypersetup{citecolor=pureblue}%文献引用颜色
+\bibliographystyle{plain}
 
 \title{$\alpha$与$\beta$粒子鉴别程序设计报告}
 
@@ -64,6 +67,8 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 可以通过对切伦科夫环的识别来鉴别$\alpha$与$\beta$粒子。
 
 \section{算法回顾}
+\subsection{平面二维卷积神经网络} % (fold)
+\label{sub:平面二维卷积神经网络}
 我们随后设计了一个卷积神经网络，以30个PMT在1029ns的采样时间内的ADC电压输出（即输出电压波形）作为CNN的输入量，直接输出对两种粒子的预测概率。
 首先对各个PMT的输出波形进行处理，之后使用stride迅速缩小卷积层的大小。网络中总参数为81526个，使用的激活函数为LeakyReLU（$\alpha=0.1$）
 下图为我们使用的CNN的结构。
@@ -73,10 +78,26 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
     \caption{CNN结构}
     \includegraphics[width=1.0\linewidth]{net.pdf}
 \end{figure}
+% subsection平面二维卷积神经网络 (end)
+\subsection{球面卷积神经网络试验} % (fold)
+\label{sub:球面卷积神经网络试验}
+平面二维卷积神经网络的其中一个维度为PMT序号维度，PMT序号与PMT空间位置的关联不“自然”，因此我们认为使用二维卷积神经网络，在PMT编号维度可能学不到什么有物理意义的内容。如果我们希望从切伦科夫环的角度来进行粒子判别，针对探测器的球面流形进行神经网络显得更加自然、有物理意义。
 
+我们尝试了使用S2CNN，主要有以下几步：
+\begin{enumerate}
+    \item 将PMT的位置转化为方位角坐标$(\theta, \varphi)$
+    \item 在$(\theta, \varphi)$相空间构造一个30$\times$30的格点，30个PMT位置就在30个格点上，值为该事例在该PMT上响应出的电荷。
+    \item 使用30个PMT的位置作为卷积核（一个球面流形卷积核），遍历离散化的SO(3)群元素：将每个SO(3)作用到卷积核上，卷积核被旋转；旋转后的卷积核与输入层做内积，作为一个输出。遍历完成后输出一个在SO(3)空间的张量。
+    \item 如法炮制，只不过这次卷积核是SO(3)的一些格点。
+    \item 卷积结果最终线性映射回到粒子判别上
+\end{enumerate}
+
+该方法没有效果，训练结果与随机猜测无异。
+% subsection球面卷积神经网络试验 (end)
 \section{算法检测结果}
 
 
 \section{展望}
 
+% \bibliography{main.bib}
 \end{document}
