@@ -13,6 +13,7 @@
 \usepackage{amssymb}
 \usepackage{mathrsfs}
 \usepackage{bm}
+\usepackage{pdfpages}
 
 \title{$\alpha$与$\beta$粒子鉴别程序设计报告}
 
@@ -63,9 +64,18 @@ $\beta$粒子本质为电子，质量远小于$\alpha$粒子。相同能量的$\
 可以通过对切伦科夫环的识别来鉴别$\alpha$与$\beta$粒子。
 
 \section{算法回顾}
+我们随后设计了一个卷积神经网络，以30个PMT在1029ns的采样时间内的ADC电压输出（即输出电压波形）作为CNN的输入量，直接输出对两种粒子的预测概率。
+首先对各个PMT的输出波形进行处理，之后使用stride迅速缩小卷积层的大小。网络中总参数为81526个，使用的激活函数为LeakyReLU（$\alpha=0.1$）
+下图为我们使用的CNN的结构。
 
+\begin{figure}[H]
+    \centering
+    \caption{CNN结构}
+    \includegraphics[width=1.0\linewidth]{net.pdf}
+\end{figure}
 
 \section{算法检测结果}
+
 
 \section{展望}
 
