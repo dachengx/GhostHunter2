@@ -15,19 +15,23 @@ import tables
 from tqdm import tqdm
 import DataIO
 
+device = torch.device(1)
+
 def main(filename, Model, SavePath):
     torch.cuda.init()
     torch.cuda.empty_cache()
-    device = torch.device(0)
 
-    EventID, TimeProfile = DataIO.ReadProblemSet(filename)
-    ProblemData = Data.TensorDataset(torch.from_numpy(TimeProfile).float().cuda(device=device))
+    EventID, Wave = DataIO.ReadProblemSet(filename)
+    Answer = np.zeros(len(EventID)).astype(np.float32)
+
+    Answer = np.zeros(len(Wave)).astype(np.float32)
+    ProblemData = Data.TensorDataset(torch.from_numpy(Wave).float())
     DataLoader = Data.DataLoader(dataset=ProblemData, batch_size=1, shuffle=False, pin_memory=False)
     net = torch.load(Model, map_location=device)
-    Answer = np.zeros(len(EventID)).astype(np.float32)
     for i, data in enumerate(tqdm(DataLoader, 0)):
+        torch.cuda.empty_cache()
         inputs = data[0]
-        inputs = Variable(inputs)
+        inputs = Variable(inputs.cuda(device=device))
         outputs = net(inputs).cpu().detach().numpy()
         Answer[i] = outputs[0][1]
 

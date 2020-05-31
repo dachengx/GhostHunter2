@@ -1,33 +1,30 @@
 SHELL:=bash
 method:=Threshold
-seq:=$(shell seq 0 1)
-prefix:=pre-
+seq:=$(shell seq 0 3)
+prefix:=final-
 trainprefix:=train-
 datfold:=/srv/abpid/dataset
 NetDir:=/srv/abpid/Network_Models
-PreTrain:=net.txt
+Net:=$(NetDir)/ab.torch_net
+Batch:=128
 
 all: $(method)/sub.h5
 
-sub : model $(datfold)/sub.h5
+sub : $(datfold)/sub.h5
 
-model : $(seq:%=$(NetDir)/ab.torch_net%)
+model : $(Net)
 
 data : $(seq:%=$(datfold)/$(trainprefix)%.h5)
 
-$(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5 $(NetDir)/ab.torch_net$(word $(words $(seq)), $(seq))
-	python3 -u Inference.py $< -M $(word 2,$^) -o $@
+$(datfold)/sub.h5 : $(datfold)/$(trainprefix)problem.h5
+	python3 -u Inference.py $< -M $(Net) -o $@
 
-define train
-$(NetDir)/ab.torch_net% : $(NetDir)/.Training_finished%
-	python3 -u Choose_Nets.py $$< -P $$(PreTrain) -o $$@
+$(Net) : $(seq:%=$(NetDir)/.Training_finished%)
 
 $(NetDir)/.Training_finished% : $(datfold)/$(trainprefix)%.h5
-	@mkdir -p $$(dir $$@)
-	python3 -u Train_Nets.py $$< -B 32 -o $$(dir $$@) -P $$(PreTrain) > $$@.log 2>&1
-	@touch $$@
-endef
-$(foreach i,$(seq),$(eval $(call train,$(i))))
+	@mkdir -p $(dir $@)
+	python3 -u Train_Nets.py $< -B $(Batch) -o $(Net) > $@.log 2>&1
+	@touch $@
 
 $(datfold)/$(trainprefix)problem.h5 : $(datfold)/$(prefix)problem.h5
 	@mkdir -p $(dir $@)
@@ -47,7 +44,7 @@ $(datfold)/$(prefix)%.h5 :
 	wget http://hep.tsinghua.edu.cn/~orv/dc/$(notdir $@) -O $@
 $(datfold)/$(prefix)problem.h5 :
 	@mkdir -p $(dir $@)
-	wget http://hep.tsinghua.edu.cn/~orv/dc/pre-problem.h5 -O $@
+	wget http://hep.tsinghua.edu.cn/~orv/dc/$(prefix)problem.h5 -O $@
 
 .DELETE_ON_ERROR:
 .SECONDARY:

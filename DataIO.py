@@ -21,6 +21,15 @@ def ReadPETruth(filename) :
     return {'Data': PETruth, 'DataFrame': PETruth_DataFrame}
 
 
+def ReadPEGuess(filename) :
+    iptfile = tables.open_file(filename, 'r')
+    PEGuess = iptfile.root.PEGuess[:]
+    keys = iptfile.root.PEGuess.colnames
+    PEGuess_DataFrame = pd.DataFrame({key: PEGuess[key] for key in keys})
+    iptfile.close()
+    return {'Data': PEGuess, 'DataFrame': PEGuess_DataFrame}
+
+
 def ReadParticleTruth(filename) :
     iptfile = tables.open_file(filename, 'r')
     ParticleTruth = iptfile.root.ParticleTruth[:]
@@ -46,19 +55,37 @@ def ReadWaveform(filename) :
     return {'Data': Waveform, 'DataFrame': Waveform_DataFrame}
 
 
+#def ReadTrainSet(filename) :
+#    iptfile = tables.open_file(filename, 'r')
+#    ParticleType = iptfile.root.ParticleType[:]
+#    TimeProfile = iptfile.root.TimeProfile[:]
+#    iptfile.close()
+#    return TimeProfile, ParticleType
+
+
+#def ReadProblemSet(filename):
+#    iptfile = tables.open_file(filename, 'r')
+#    EventID = iptfile.root.EventID[:]
+#    TimeProfile = iptfile.root.TimeProfile[:]
+#    iptfile.close()
+#    return EventID, TimeProfile
+
+
 def ReadTrainSet(filename) :
     iptfile = tables.open_file(filename, 'r')
     ParticleType = iptfile.root.ParticleType[:]
-    TimeProfile = iptfile.root.TimeProfile[:]
+    Wave = iptfile.root.Wave[:]
     iptfile.close()
-    return TimeProfile, ParticleType
+    return Wave, ParticleType
+
 
 def ReadProblemSet(filename):
     iptfile = tables.open_file(filename, 'r')
     EventID = iptfile.root.EventID[:]
-    TimeProfile = iptfile.root.TimeProfile[:]
+    Wave = iptfile.root.Wave[:]
     iptfile.close()
-    return EventID, TimeProfile
+    return EventID, Wave
+
 
 def GetProfile(PETruth, WindowSize, nChannels):
     Time = np.zeros((nChannels, WindowSize[1] - WindowSize[0]), dtype=np.uint8)
@@ -71,6 +98,19 @@ def GetProfile(PETruth, WindowSize, nChannels):
         petime_number, petime_counts = np.unique(this_channel_petruth, return_counts=True)
         Time[cid][petime_number] = petime_counts
     return Time.T
+
+def GetWaveform(Waveform, nChannels):
+    Wave = np.zeros((nChannels, len(Waveform.loc[0]['Waveform'])), dtype=np.int16)
+    Wave[Waveform['ChannelID']] = np.array(Waveform['Waveform'].values.tolist())
+    return Wave.T
+
+def MakeWaveform(Waveform) :
+    nChannels = 30
+    Waveform['ChannelID'] -= Waveform['ChannelID'].min()
+    tqdm.pandas()
+    Wave = Waveform.groupby('EventID').progress_apply(lambda x:GetWaveform(x, nChannels))
+    Wave = np.array(Wave.values.tolist())
+    return Wave
 
 
 def MakeTimeProfile(PETruth, WindowSize) :

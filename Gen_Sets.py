@@ -9,15 +9,22 @@ WindowSize = [200, 400]
 
 
 def main(fipt, fopt):
+#   if 'problem' in fipt:
+#        PETruth = DataIO.ReadPEGuess(fipt)['DataFrame']
+#    else:
+#        PETruth = DataIO.ReadPETruth(fipt)['DataFrame']
+#    assert TimeProfile.shape[0] == EventID.shape[0]
+    Waveform = DataIO.ReadWaveform(fipt)['DataFrame']
+    EventID = np.unique(Waveform['EventID'].to_numpy())
+    Wave = DataIO.MakeWaveform(Waveform)
+    assert Wave.shape[0] == EventID.shape[0]
+
     TrainFile = tables.open_file(fopt, mode='a', filters=tables.Filters(complevel=4))
 
-    PETruth = DataIO.ReadPETruth(fipt)['DataFrame']
-    EventID = np.unique(PETruth['EventID'].to_numpy())
-    TimeProfile = DataIO.MakeTimeProfile(PETruth, WindowSize)
-    assert TimeProfile.shape[0] == EventID.shape[0]
-
-    TimeAtom = tables.Atom.from_dtype(TimeProfile.dtype)
-    TimeArray = TrainFile.create_carray('/', 'TimeProfile', atom=TimeAtom, obj=TimeProfile)
+#   TimeAtom = tables.Atom.from_dtype(TimeProfile.dtype)
+#   TimeArray = TrainFile.create_carray('/', 'TimeProfile', atom=TimeAtom, obj=TimeProfile)
+    WaveAtom = tables.Atom.from_dtype(Wave.dtype)
+    WaveArray = TrainFile.create_carray('/', 'Wave', atom=WaveAtom, obj=Wave)
 
     EventIDAtom = tables.Atom.from_dtype(EventID.dtype)
     EventIDArray = TrainFile.create_carray('/', 'EventID', atom=EventIDAtom, obj=EventID)
